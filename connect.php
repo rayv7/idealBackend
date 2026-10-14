@@ -1,8 +1,8 @@
 <?php
-$host = getenv('MYSQLHOST') ?: 'localhost';
-$user = getenv('MYSQLUSER') ?: 'root';
-$password = getenv('MYSQLPASSWORD') ?: '';
-$dbname = getenv('MYSQLDATABASE') ?: 'ideal_db';
+$host = getenv('MYSQLHOST');
+$user = getenv('MYSQLUSER');
+$password = getenv('MYSQLPASSWORD');
+$dbname = getenv('MYSQLDATABASE');
 $port = getenv('MYSQLPORT') ?: 3306;
 
 try {
@@ -10,11 +10,9 @@ try {
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     ]);
-    
-    // This provides the $con variable your other files expect
     $con = $pdo; 
-
 } catch (PDOException $e) {
-    die(json_encode(["error" => "Database connection failed: " . $e->getMessage()]));
+    echo json_encode(["error" => "Detailed PDO Error: " . $e->getMessage()]);
+    exit;
 }
 ?>
