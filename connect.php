@@ -1,8 +1,8 @@
 <?php
-$host = getenv('MYSQLHOST');
-$user = getenv('MYSQLUSER');
-$password = getenv('MYSQLPASSWORD');
-$dbname = getenv('MYSQLDATABASE');
+$host = getenv('MYSQLHOST') ?: '127.0.0.1';
+$user = getenv('MYSQLUSER') ?: 'root';
+$password = getenv('MYSQLPASSWORD') ?: '';
+$dbname = getenv('MYSQLDATABASE') ?: 'ideal_db';
 $port = getenv('MYSQLPORT') ?: 3306;
 
 try {
