@@ -16,15 +16,12 @@ if (empty($phonenum) || empty($password)) {
 }
 
 try {
-    // Prepare statement using PDO
     $stmt = $con->prepare("SELECT * FROM users WHERE phonenum = ?");
     $stmt->execute([$phonenum]);
-    $user = $stmt->fetch();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user && password_verify($password, $user['password'])) {
-        // Strip out the password hash before sending user data back
-        unset($user['password']);
-        
+        unset($user['password']); // Strip the password hash before sending data back
         $response['success'] = 1;
         $response['message'] = "Login successful";
         $response['user'] = $user;
@@ -36,4 +33,3 @@ try {
 }
 
 echo json_encode($response);
-?>
