@@ -1,25 +1,33 @@
 <?php
 require 'connect.php';
-
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-$name = $_POST['name'] ?? '';
-$price = $_POST['price'] ?? 0;
-$unit = $_POST['unit'] ?? '';
-$category_id = $_POST['category_id'] ?? null;
-$quantity = $_POST['quantity'] ?? 50;
-$description = $_POST['description'] ?? '';
-// Receives the high-res Cloudinary HTTPS URL directly from Flutter
-$image_path = $_POST['image_url'] ?? 'assets/placeholder.png';
+$response = ['success' => 0, 'message' => ''];
 
-$sql = "INSERT INTO products (name, price, unit, category_id, quantity, description, image) 
-        VALUES ('$name', '$price', '$unit', '$category_id', '$quantity', '$description', '$image_path')";
+$name = trim($_POST["name"] ?? '');
+$price = trim($_POST["price"] ?? '');
+$category_id = trim($_POST["category_id"] ?? '');
+$description = trim($_POST["description"] ?? '');
+$image_url = trim($_POST["image_url"] ?? '');
 
-if (mysqli_query($con, $sql)) {
-    echo json_encode(["success" => 1, "message" => "Product added successfully"]);
-} else {
-    echo json_encode(["success" => 0, "message" => "Error adding product: " . mysqli_error($con)]);
+if (empty($name) || empty($price)) {
+    $response['message'] = "Product name and price are required";
+    echo json_encode($response);
+    exit;
 }
 
-mysqli_close($con);
+try {
+    $stmt = $con->prepare("INSERT INTO products (name, price, category_id, description, image_url) VALUES (?, ?, ?, ?, ?)");
+    if ($stmt->execute([$name, $price, $category_id, $description, $image_url])) {
+        $response['success'] = 1;
+        $response['message'] = "Product added successfully";
+    } else {
+        $response['message'] = "Failed to add product";
+    }
+} catch (PDOException $e) {
+    $response['message'] = "Database Error: " . $e->getMessage();
+}
+
+echo json_encode($response);

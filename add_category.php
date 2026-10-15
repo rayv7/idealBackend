@@ -1,31 +1,29 @@
 <?php
 require 'connect.php';
-
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: *");
+header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-$response = ["success" => 0, "message" => ""];
+$response = ['success' => 0, 'message' => ''];
 
-if (isset($_POST['name']) && !empty(trim($_POST['name']))) {
-    $category_name = trim($_POST['name']);
+$category_name = trim($_POST["category_name"] ?? $_POST["name"] ?? '');
 
-    // Insert category into the categories table
-    $stmt = $con->prepare("INSERT INTO categories (name) VALUES (?)");
-    $stmt->bind_param("s", $category_name);
+if (empty($category_name)) {
+    $response['message'] = "Category name is required";
+    echo json_encode($response);
+    exit;
+}
 
-    if ($stmt->execute()) {
-        $response["success"] = 1;
-        $response["message"] = "Category created successfully";
-        $response["category_id"] = $stmt->insert_id;
+try {
+    $stmt = $con->prepare("INSERT INTO categories (category_name) VALUES (?)");
+    if ($stmt->execute([$category_name])) {
+        $response['success'] = 1;
+        $response['message'] = "Category added successfully";
     } else {
-        $response["message"] = "Error inserting category: " . $stmt->error;
+        $response['message'] = "Failed to add category";
     }
-
-    $stmt->close();
-} else {
-    $response["message"] = "Category name is required";
+} catch (PDOException $e) {
+    $response['message'] = "Database Error: " . $e->getMessage();
 }
 
 echo json_encode($response);
-mysqli_close($con);

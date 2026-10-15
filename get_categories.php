@@ -1,25 +1,37 @@
 <?php
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-
 require 'connect.php';
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
+header("Content-Type: application/json");
 
-$query = "SELECT category_id, name FROM categories";
+$response = ['success' => 0, 'message' => '', 'data' => []];
 
-$result = mysqli_query($con, $query);
+$category_id = $_GET['id'] ?? $_POST['id'] ?? null;
 
-$categories = array();
-
-if ($result && mysqli_num_rows($result) > 0) {
-    while ($row = mysqli_fetch_assoc($result)) {
-        array_push($categories, array(
-            'category_id' => (string)$row['category_id'],
-            'name' => $row['name']
-        ));
+try {
+    if ($category_id) {
+        // Fetch a single category by ID
+        $stmt = $con->prepare("SELECT * FROM categories WHERE id = ?");
+        $stmt->execute([$category_id]);
+        $category = $stmt->fetch();
+        
+        if ($category) {
+            $response['success'] = 1;
+            $response['data'] = $category;
+        } else {
+            $response['message'] = "Category not found";
+        }
+    } else {
+        // Fetch all categories
+        $stmt = $con->query("SELECT * FROM categories");
+        $categories = $stmt->fetchAll();
+        
+        $response['success'] = 1;
+        $response['data'] = $categories;
     }
-    echo json_encode(array("success" => 1, "data" => $categories));
-} else {
-    echo json_encode(array("success" => 0, "message" => "No categories found", "data" => array()));
+} catch (PDOException $e) {
+    $response['message'] = "Database Error: " . $e->getMessage();
 }
 
-mysqli_close($con);
+echo json_encode($response);
+?>

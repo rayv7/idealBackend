@@ -1,52 +1,35 @@
 <?php
 require 'connect.php';
-
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    exit;
-}     
+$response = ['success' => 0, 'message' => '', 'data' => []];
 
-$response = [
-    'success' => 0,
-    'data'    => [],
-    'message' => ''
-];
+$id = $_GET['id'] ?? $_POST['id'] ?? null;
 
-$phonenum = trim($_GET['phonenum'] ?? '');
-
-if ($phonenum === '') {
-    $response['message'] = "Missing phone number.";
-    echo json_encode($response);
-    exit;
+try {
+    if ($id) {
+        $stmt = $con->prepare("SELECT id, fname, sname, phonenum, email FROM users WHERE id = ?");
+        $stmt->execute([$id]);
+        $user = $stmt->fetch();
+        
+        if ($user) {
+            $response['success'] = 1;
+            $response['data'] = $user;
+        } else {
+            $response['message'] = "User not found";
+        }
+    } else {
+        $stmt = $con->query("SELECT id, fname, sname, phonenum, email FROM users");
+        $users = $stmt->fetchAll();
+        
+        $response['success'] = 1;
+        $response['data'] = $users;
+    }
+} catch (PDOException $e) {
+    $response['message'] = "Database Error: " . $e->getMessage();
 }
-
-$stmt = mysqli_prepare($con, "SELECT fname, sname, email, phonenum FROM users WHERE phonenum = ? LIMIT 1");
-
-if (!$stmt) {
-    $response['message'] = "Query preparation failed.";
-    echo json_encode($response);
-    exit;
-}
-
-mysqli_stmt_bind_param($stmt, "s", $phonenum);
-mysqli_stmt_execute($stmt);
-$res = mysqli_stmt_get_result($stmt);
-
-while ($row = mysqli_fetch_assoc($res)) {
-    $response['data'][] = $row;
-}
-
-if (count($response['data']) > 0) {
-    $response['success'] = 1;
-} else {
-    $response['message'] = "User not found.";
-}
-
-mysqli_stmt_close($stmt);
-mysqli_close($con);
 
 echo json_encode($response);
+?>

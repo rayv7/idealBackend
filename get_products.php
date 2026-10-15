@@ -1,32 +1,43 @@
 <?php
 require 'connect.php';
-
 header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: Content-Type");
 header("Content-Type: application/json");
 
-// Select products with category name join
-$sql = "SELECT p.product_id, p.name, p.price, p.unit, p.quantity, p.image, p.description, 
-               COALESCE(c.name, 'General') AS category
-        FROM products p 
-        LEFT JOIN categories c ON p.category_id = c.category_id";
+$response = ['success' => 0, 'message' => '', 'data' => []];
 
-$result = mysqli_query($con, $sql);
-$products = [];
+$product_id = $_GET['id'] ?? $_POST['id'] ?? null;
+$category_id = $_GET['category_id'] ?? $_POST['category_id'] ?? null;
 
-if ($result) {
-    while ($row = mysqli_fetch_assoc($result)) {
-        $products[] = [
-            'id' => (string)$row['product_id'],
-            'name' => $row['name'],
-            'category' => $row['category'],
-            'price' => (double)$row['price'],
-            'unit' => $row['unit'] ?? '',
-            'imagePath' => $row['image'] ?? 'assets/placeholder.png'
-        ];
+try {
+    if ($product_id) {
+        $stmt = $con->prepare("SELECT * FROM products WHERE id = ?");
+        $stmt->execute([$product_id]);
+        $product = $stmt->fetch();
+        
+        if ($product) {
+            $response['success'] = 1;
+            $response['data'] = $product;
+        } else {
+            $response['message'] = "Product not found";
+        }
+    } elseif ($category_id) {
+        $stmt = $con->prepare("SELECT * FROM products WHERE category_id = ?");
+        $stmt->execute([$category_id]);
+        $products = $stmt->fetchAll();
+        
+        $response['success'] = 1;
+        $response['data'] = $products;
+    } else {
+        $stmt = $con->query("SELECT * FROM products");
+        $products = $stmt->fetchAll();
+        
+        $response['success'] = 1;
+        $response['data'] = $products;
     }
-    echo json_encode(["success" => 1, "data" => $products]);
-} else {
-    echo json_encode(["success" => 0, "message" => "Database query failed"]);
+} catch (PDOException $e) {
+    $response['message'] = "Database Error: " . $e->getMessage();
 }
 
-mysqli_close($con);
+echo json_encode($response);
+?>

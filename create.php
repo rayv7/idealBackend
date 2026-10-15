@@ -20,19 +20,19 @@ if (empty($fname) || empty($phonenum) || empty($password)) {
 
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-$stmt = mysqli_prepare($con, "INSERT INTO users (fname, sname, phonenum, password, email) VALUES (?, ?, ?, ?, ?)");
-
-if ($stmt) {
-    mysqli_stmt_bind_param($stmt, "sssss", $fname, $sname, $phonenum, $hashed_password, $email);
-    if (mysqli_stmt_execute($stmt)){
+try {
+    // Using PDO prepare and execute
+    $stmt = $con->prepare("INSERT INTO users (fname, sname, phonenum, password, email) VALUES (?, ?, ?, ?, ?)");
+    
+    if ($stmt->execute([$fname, $sname, $phonenum, $hashed_password, $email])) {
         $response['success'] = 1;
         $response['message'] = "User successfully registered";
     } else {
-        $response['message'] = "Unable to register user: Phonenumber or email may already exist";
+        $response['message'] = "Unable to register user";
     }
-    mysqli_stmt_close($stmt);
-} else {
-    $response['message'] = "Database Error.";
+} catch (PDOException $e) {
+    // Handles duplicate email or phone number entries gracefully
+    $response['message'] = "Unable to register user: Phone number or email may already exist";
 }
+
 echo json_encode($response);
-mysqli_close($con);
