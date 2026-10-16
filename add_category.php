@@ -6,7 +6,7 @@ header("Content-Type: application/json");
 
 $response = ['success' => 0, 'message' => ''];
 
-$category_name = trim($_POST["category_name"] ?? $_POST["name"] ?? '');
+$category_name = trim($_POST["name"] ?? '');
 
 if (empty($category_name)) {
     $response['message'] = "Category name is required";
@@ -15,7 +15,7 @@ if (empty($category_name)) {
 }
 
 try {
-    $stmt = $con->prepare("INSERT INTO categories (category_name) VALUES (?)");
+    $stmt = $con->prepare("INSERT INTO categories VALUES (?)");
     if ($stmt->execute([$category_name])) {
         $response['success'] = 1;
         $response['message'] = "Category added successfully";

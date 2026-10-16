@@ -6,7 +6,7 @@ header("Content-Type: application/json");
 
 $response = ['success' => 0, 'message' => '', 'data' => []];
 
-$category_id = $_GET['id'] ?? $_POST['id'] ?? null;
+$category_id = $_GET['category_id'] ?? $_POST['category_id'] ?? null;
 
 try {
     if ($category_id) {
@@ -34,4 +34,3 @@ try {
 }
 
 echo json_encode($response);
-?>
