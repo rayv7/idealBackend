@@ -15,7 +15,7 @@ if (empty($category_name)) {
 }
 
 try {
-    $stmt = $con->prepare("INSERT INTO categories VALUES (?)");
+    $stmt = $con->prepare("INSERT INTO categories (name) VALUES (?)");
     if ($stmt->execute([$category_name])) {
         $response['success'] = 1;
         $response['message'] = "Category added successfully";
